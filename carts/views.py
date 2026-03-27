@@ -1,5 +1,6 @@
+from urllib import request
 from django.shortcuts import get_object_or_404, render, redirect
-from store.models import Product
+from store.models import Product,Variation
 from .models import Cart,CartItem
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -15,6 +16,25 @@ def _cart_id(request):
 
 def add_cart(request,product_id):
     product = Product.objects.get(id = product_id) #gets the product
+    product_variations = []  # storing diff. kind of variations selected by the user
+
+    if request.method == 'POST':
+        # color = request.POST['color']
+        # size = request.POST['size']
+        # making the above fields more dynamic
+        for item in request.POST:
+            key = item
+            value = request.POST[key]
+
+            try:    
+                # we are making sure that the variation category must be matched with the variation value i.e. color with color and size with size
+                variation = Variation.objects.get(product = product, variation_category__iexact = key, variation_value__iexact = value)
+                product_variations.append(variation)
+            except:
+                pass   
+
+
+    # We are getting the Cart here
     try:
         cart = Cart.objects.get(cart_id = _cart_id(request))
     except Cart.DoesNotExist:
@@ -23,6 +43,8 @@ def add_cart(request,product_id):
         )
     cart.save()
 
+
+    # We are getting the Cartitem here
     try:
         cart_item = CartItem.objects.get(product = product, cart = cart)
         cart_item.quantity += 1
