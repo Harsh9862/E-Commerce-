@@ -1,4 +1,5 @@
 from urllib import request
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from store.models import Product,Variation
 from .models import Cart,CartItem
@@ -43,46 +44,85 @@ def add_cart(request,product_id):
         )
     cart.save()
 
-
+    # for grouping the same product with same variations in the cart
+    is_cart_item_exists = CartItem.objects.filter(product = product, cart = cart)
     # We are getting the Cartitem here
-    try:
-        cart_item = CartItem.objects.get(product = product, cart = cart)
-        cart_item.quantity += 1
-        cart_item.save()
-    except CartItem.DoesNotExist:
+    # try: -> change to if else statement because we are not getting the cart item here we are checking whether the cart item exists or not and if it exists then we are adding the quantity of the cart item and if it does not exist then we are creating a new cart item
+    if is_cart_item_exists:
+        cart_item = CartItem.objects.filter(product = product, cart = cart) #using this we will see the variations in the database
+
+        # if the current variation is inside the exisiting vaiations then we are increasing the quantity of the cart item 
+        # and if the current variation is not inside the existing variations of the cart item then we are creating a new cart item with the current variation
+        ex_var_list = [] # existing variation list
+        id = [] # to store the id of the cart item with the same product and same cart and same variations
+        for item in cart_item:
+            existing_variation = item.variations.all()
+            ex_var_list.append(list(existing_variation)) 
+            id.append(item.id)
+        
+        if product_variations in ex_var_list:
+            # increase the quantity of the cart item
+            index = ex_var_list.index(product_variations) # getting the index of the cart item with the same product and same cart and same variations
+            item_id = id[index] # getting the id of the cart item with the same product and same cart and same variations
+            item = CartItem.objects.get(product = product, id = item_id) # getting the cart item with the same product and same cart and same variations
+            item.quantity += 1
+            item.save()
+
+        else:
+            item = CartItem.objects.create(product = product, quantity = 1, cart = cart)
+            # creating a new cart item
+            if len(product_variations) > 0: # if there are any variations then we are adding those variations to the cart item
+                item.variations.clear() # we are clearing the previous variations of the cart item and adding the new variations to the cart item
+                item.variations.add(*product_variations) # we are adding the new variations to the cart item
+                    
+            item.save()                                                             # now it is handling the gruoping properly
+
+    else:
         cart_item = CartItem.objects.create(
             product = product,
             quantity = 1,
             cart = cart
         )   
+        if len(product_variations) > 0: 
+            cart_item.variations.clear()
+            cart_item.variations.add(*product_variations)
         cart_item.save()
 
+    return redirect('cart')
     # Redirect to the 'next' URL if provided, else default to product_detail
-    next_url = request.GET.get('next')
-    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        return redirect(next_url)
-    else:
-        return redirect('product_detail', category_slug=product.category.slug, product_slug=product.slug)      # Redirect back to the product detail page
+    # next_url = request.GET.get('next')
+    # if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+    #     return redirect(next_url)
+    # else:
+    #     return redirect('product_detail', category_slug=product.category.slug, product_slug=product.slug)      # Redirect back to the product detail page
 
 
 
-def remove_cart(request, product_id):
+def remove_cart(request, product_id, cart_item_id):
     cart = Cart.objects.get(cart_id = _cart_id(request))
     product = get_object_or_404(Product, id = product_id)
-    cart_item = CartItem.objects.get(product = product, cart = cart)
-    if cart_item.quantity > 1 :
-        cart_item.quantity -= 1
-        cart_item.save()
-    else:
-        cart_item.delete()
+    
+    try:
+        cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item_id)
+        if cart_item.quantity > 1 :
+            cart_item.quantity -= 1
+            cart_item.save()
+        else:
+            cart_item.delete()
+    except:
+        pass
     return redirect('cart')    
 
 
-def remove_cart_item(request, product_id):
+def remove_cart_item(request, product_id, cart_item_id):
     cart = Cart.objects.get(cart_id = _cart_id(request))
     product = get_object_or_404(Product, id = product_id)
-    cart_item = CartItem.objects.get(product = product, cart = cart)
-    cart_item.delete()
+    
+    try:
+        cart_item = CartItem.objects.get(product = product, cart = cart, id = cart_item_id)
+        cart_item.delete()
+    except:
+        pass
     return redirect('cart')
 
 
