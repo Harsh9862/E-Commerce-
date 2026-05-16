@@ -135,3 +135,29 @@ STATICFILES_DIRS = [
 # Media files configuration 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR/'media'
+
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: "danger",
+}
+
+import smtplib         # this is because of using older version of django
+# Patch for Django 3.1 + Python 3.12
+_old_starttls = smtplib.SMTP.starttls
+
+def _new_starttls(self, *args, **kwargs):
+    kwargs.pop("keyfile", None)
+    kwargs.pop("certfile", None)
+    return _old_starttls(self, *args, **kwargs)
+
+smtplib.SMTP.starttls = _new_starttls
+
+# SMTP Configuration -> for email verification
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'harshmishra1894@gmail.com'
+EMAIL_HOST_PASSWORD = 'hawv rzxk esrl ikjx'
+EMAIL_USE_TLS = True 
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
