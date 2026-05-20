@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="text-success">Order Confirmed</h2>
+                    <p class="lead">Thank you! Your order <strong>#{{ order.order_number }}</strong> has been placed successfully.</p>
+                    <p>Status: <strong>{{ order.status }}</strong></p>
+                    <p>Total Paid: <strong>₹{{ order.order_total }}</strong></p>
+                    <hr>
+                    <h5>Order Details</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item"><strong>Name:</strong> {{ order.full_name }}</li>
+                        <li class="list-group-item"><strong>Email:</strong> {{ order.email }}</li>
+                        <li class="list-group-item"><strong>Phone:</strong> {{ order.phone_number }}</li>
+                        <li class="list-group-item"><strong>Shipping Address:</strong> {{ order.full_address }}</li>
+                    </ul>
+                    <h5>Products</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_products %}
+                                    <tr>
+                                        <td>{{ item.product.product_name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>₹{{ item.product_price }}</td>
+                                        <td>₹{{ item.product_price|floatformat:2 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'store' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

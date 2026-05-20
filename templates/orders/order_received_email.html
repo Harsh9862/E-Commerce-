@@ -1,0 +1,8 @@
+{% autoescape off %} <!-- for protecting against XSS attacks or 3rd party injections -->
+
+HI {{ user.first_name }},
+
+Your order <strong>#{{ order.order_number }} : {{ order.product_name }}</strong> has been received and is being processed. 
+We will notify you once your order is shipped.
+
+{% endautoescape %}

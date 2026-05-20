@@ -10,10 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent 
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -162,3 +167,7 @@ EMAIL_HOST_USER = 'harshmishra1894@gmail.com'
 EMAIL_HOST_PASSWORD = 'hawv rzxk esrl ikjx'
 EMAIL_USE_TLS = True 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')

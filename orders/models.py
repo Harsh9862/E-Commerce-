@@ -4,7 +4,7 @@ from store.models import Product, Variation
 
 class Payment(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE) #foreign key to the user model, on_delete=models.CASCADE -> if the user is deleted then the payment will also be deleted
-    payment_id = models.CharField(max_length=100) #payment id from the payment gateway
+    payment_id = models.CharField(max_length=100) #payment id from the payment gateway -> razorpay_order_id -> gateway id for the order
     payment_method = models.CharField(max_length=100) #payment method used for the payment
     amount_paid = models.CharField(max_length=100) #amount paid for the order
     status = models.CharField(max_length=100) #status of the payment
@@ -24,6 +24,7 @@ class Order(models.Model):
     user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True) #foreign key to the user model, on_delete=models.SET_NULL -> if the user is deleted then the order will not be deleted but the user field will be set to null
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, blank=True, null=True) #foreign key to the payment model, on_delete=models.SET_NULL -> if the payment is deleted then the order will not be deleted but the payment field will be set to null
     order_number = models.CharField(max_length=20) #order number for the order
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=15)
@@ -41,6 +42,13 @@ class Order(models.Model):
     is_ordered = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True) 
     updated_at = models.DateTimeField(auto_now=True) #updated at field to store the date and time when the order was updated
+
+
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+    
+    def full_address(self):
+        return f'{self.address_line_1} {self.address_line_2}'
 
     def __str__(self):
         return self.first_name

@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render,redirect
 
 from accounts.models import Account
+from carts.models import CartItem
 # use django forms for registration and login -> forms.py
 from .forms import RegistrationForm
 from django.contrib.auth.decorators import login_required
@@ -61,6 +62,12 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
         if user is not None:
             auth.login(request, user)
+
+            cart_items = CartItem.objects.filter(user__isnull=True)
+            for item in cart_items:
+                item.user = user
+                item.save()
+
             messages.success(request, 'You are now logged in.')
 
             url = request.META.get('HTTP_REFERER') #get the url of the page from which the user is coming to the login page 

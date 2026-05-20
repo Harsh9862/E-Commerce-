@@ -65,12 +65,12 @@ def add_cart(request,product_id):
             # increase the quantity of the cart item
             index = ex_var_list.index(product_variations) # getting the index of the cart item with the same product and same cart and same variations
             item_id = id[index] # getting the id of the cart item with the same product and same cart and same variations
-            item = CartItem.objects.get(product = product, id = item_id) # getting the cart item with the same product and same cart and same variations
+            item = CartItem.objects.get(product = product, id = item_id, user=request.user) # getting the cart item with the same product and same cart and same variations
             item.quantity += 1
             item.save()
 
         else:
-            item = CartItem.objects.create(product = product, quantity = 1, cart = cart)
+            item = CartItem.objects.create(product = product, quantity = 1, cart = cart, user=request.user)
             # creating a new cart item
             if len(product_variations) > 0: # if there are any variations then we are adding those variations to the cart item
                 item.variations.clear() # we are clearing the previous variations of the cart item and adding the new variations to the cart item
@@ -82,7 +82,8 @@ def add_cart(request,product_id):
         cart_item = CartItem.objects.create(
             product = product,
             quantity = 1,
-            cart = cart
+            cart = cart,
+            user=request.user
         )   
         if len(product_variations) > 0: 
             cart_item.variations.clear()
