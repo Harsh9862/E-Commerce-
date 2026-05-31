@@ -1,6 +1,7 @@
 import json
 import hmac
 import hashlib
+import logging
 import uuid
 import datetime
 
@@ -11,6 +12,8 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
 
 from carts.views import _cart_id
 from .models import Order, Payment, OrderProduct
@@ -113,6 +116,10 @@ def api_create_order(request):
     if not receipt:
         receipt = f'order_{uuid.uuid4().hex[:12]}'
 
+    if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
+        logger.error('Razorpay credentials are missing in settings')
+        return JsonResponse({'error': 'Razorpay credentials are not configured'}, status=500)
+
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     try:
         razorpay_order = client.order.create({
@@ -121,11 +128,14 @@ def api_create_order(request):
             'receipt': receipt,
             'payment_capture': 1,
         })
-    except razorpay.errors.AuthenticationError:
-        return JsonResponse({'error': 'Razorpay authentication failed'}, status=401)
     except razorpay.errors.BadRequestError as exc:
-        return JsonResponse({'error': str(exc)}, status=400)
-    except Exception:
+        message = str(exc)
+        logger.warning('Razorpay order create failed: %s', message)
+        if 'Authentication' in message:
+            return JsonResponse({'error': 'Razorpay authentication failed: invalid key or secret'}, status=401)
+        return JsonResponse({'error': message}, status=400)
+    except Exception as exc:
+        logger.exception('Unexpected error creating Razorpay order')
         return JsonResponse({'error': 'Unable to create Razorpay order'}, status=500)
 
     if receipt:

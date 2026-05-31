@@ -11,6 +11,7 @@
 	<aside class="col-md-3">
 		<!--   SIDEBAR   -->
 		<ul class="list-group">
+			<a class="list-group-item" href="{% url 'profile' %}"> Profile </a>
 			<a class="list-group-item active" href="#"> My order history </a>
 			<a class="list-group-item" href="#"> Transactions </a>
 			<a class="list-group-item" href="#"> Return and refunds </a>
@@ -24,72 +25,93 @@
 	</aside>
 	<main class="col-md-9">
 		<article class="card">
-		<header class="card-header">
-			<strong class="d-inline-block mr-3">Order ID: 6123456789</strong>
-			<span>Order Date: 16 December 2018</span>
+		<header class="card-header d-flex justify-content-between align-items-center">
+			<div>
+				<strong class="d-inline-block mr-3">Welcome, {{ user.first_name }} {{ user.last_name }}</strong>
+				<span class="text-muted">You have {{ order_count }} completed order{% if order_count != 1 %}s{% endif %}</span>
+			</div>
+			<div>
+				<span class="badge badge-secondary">Total spent: ₹{{ total_spent|floatformat:2 }}</span>
+			</div>
 		</header>
 		<div class="card-body">
 			<div class="row"> 
-				<div class="col-md-8">
-					<h6 class="text-muted">Delivery to</h6>
-					<p>Michael Jackson <br>  
-					Phone +1234567890 Email: myname@pixsellz.com <br>
-			    	Location: Home number, Building name, Street 123,  Tashkent, UZB <br> 
-			    	P.O. Box: 100123
-			 		</p>
+				<div class="col-md-4">
+					<h6 class="text-muted">Account</h6>
+					<div class="d-flex align-items-center">
+						{% if profile and profile.profile_image %}
+							<img src="{{ profile.profile_image.url }}" class="img-xs rounded-circle mr-3" alt="Profile">
+						{% endif %}
+						<div>
+							<p class="mb-0">{{ user.first_name }} {{ user.last_name }}</p>
+							<p class="mb-0">Phone: {% if profile.phone_number %}{{ profile.phone_number }}{% else %}{{ user.phone_number }}{% endif %}</p>
+							<p class="mb-0">Email: {{ user.email }}</p>
+						</div>
+					</div>
 				</div>
 				<div class="col-md-4">
-					<h6 class="text-muted">Payment</h6>
-					<span class="text-success">
-						<i class="fab fa-lg fa-cc-visa"></i>
-					    Visa  **** 4216  
-					</span>
-					<p>Subtotal: $356 <br>
-					 Shipping fee:  $56 <br> 
-					 <span class="b">Total:  $456 </span>
+					<h6 class="text-muted">Orders</h6>
+					<p>Completed orders: {{ order_count }}<br>
+					Total spent: ₹{{ total_spent|floatformat:2 }}
 					</p>
+				</div>
+				<div class="col-md-4">
+					<h6 class="text-muted">Shipping</h6>
+					<p>Default shipping address from latest order.</p>
 				</div>
 			</div> <!-- row.// -->
 		</div> <!-- card-body .// -->
-		<div class="table-responsive">
-		<table class="table table-hover">
-			<tr>
-				<td width="65">
-					<img src="../images/items/1.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">Product name goes here </p>
-					<var class="price text-muted">USD 145</var>
-				</td>
-				<td> Seller <br> Nike clothing </td>
-				<td width="250"> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-			<tr>
-				<td>
-					<img src="../images/items/2.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">Another name goes here </p>
-					<var class="price text-muted">USD 15</var>
-				</td>
-				<td> Seller <br> ABC shop </td>
-				<td> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-			<tr>
-				<td>
-					<img src="../images/items/3.jpg" class="img-xs border">
-				</td>
-				<td> 
-					<p class="title mb-0">The name of the product  goes here </p>
-					<var class="price text-muted">USD 145</var>
-				</td>
-				<td> Seller <br> Wallmart </td>
-				<td> <a href="#" class="btn btn-outline-primary">Track order</a> <a href="#" class="btn btn-light"> Details </a> </td>
-			</tr>
-		</table>
-		</div> <!-- table-responsive .end// -->
-		</article> <!-- order-group.// --> 
-	</main>
+
+		{% if orders %}
+			{% for order in orders %}
+				<div class="card-body border-top">
+					<div class="row"> 
+						<div class="col-md-8">
+							<h6 class="text-muted">Order #{{ order.order_number }}</h6>
+							<p>Placed: {{ order.created_at|date:"M d, Y" }} <br>
+							Status: {{ order.status }}<br>
+							Delivery to: {{ order.first_name }} {{ order.last_name }}<br>
+							Email: {{ order.email }}
+							</p>
+						</div>
+						<div class="col-md-4 text-right">
+							<h6 class="text-muted">Order total</h6>
+							<p>Subtotal: ₹{{ order.order_total|floatformat:2 }}<br>
+							Tax: ₹{{ order.tax|floatformat:2 }}<br>
+							<span class="b">Total: ₹{{ order.order_total|floatformat:2 }}</span>
+							</p>
+							<a href="{% url 'order_success' order.order_number %}" class="btn btn-outline-primary btn-sm">View details</a>
+						</div>
+					</div> <!-- row.// -->
+				</div>
+				<div class="table-responsive">
+					<table class="table table-hover mb-4">
+						<thead>
+							<tr>
+								<th>Product</th>
+								<th>Price</th>
+								<th>Qty</th>
+								<th>Variant</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for item in order.orderproduct_set.all %}
+							<tr>
+								<td>{{ item.product.product_name }}</td>
+								<td>₹{{ item.product_price|floatformat:2 }}</td>
+								<td>{{ item.quantity }}</td>
+								<td>{% if item.variation %}{{ item.variation.variation_value }}{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% endfor %}
+		{% else %}
+			<div class="card-body">
+				<p class="text-muted">You have no completed orders yet.</p>
+			</div>
+		{% endif %}
 </div> <!-- row.// -->
 </div>
 

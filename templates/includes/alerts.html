@@ -1,10 +1,37 @@
 {% if messages %}
-<ul class="messages">
+<!-- autoescape off : for protecting against XSS attacks or 3rd party injections -->
+ 
+<div id="django-messages" style="position: fixed; top: 50px; right: 12px; width: 330px; z-index: 9999;">
     {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-        {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}ALERT: {% endif %}
-        {{ message }}
-    </li>
+        <div class="alert alert-{% if 'error' in message.tags %}danger{% elif 'warning' in message.tags %}warning{% elif 'success' in message.tags %}success{% elif 'info' in message.tags %}info{% else %}secondary{% endif %} alert-dismissible fade show mb-3" role="alert" >
+            <strong>
+                {% if 'error' in message.tags %}
+                    Error
+                {% elif 'warning' in message.tags %}
+                    Warning
+                {% elif 'success' in message.tags %}
+                    Success
+                {% elif 'info' in message.tags %}
+                    Info
+                {% else %}
+                    Notice
+                {% endif %}
+            </strong>
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" >
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     {% endfor %}
-</ul>
+</div>
+<script>
+    setTimeout(function() {
+        var alertBox = document.getElementById('django-messages');
+        if (alertBox) {
+            // alertBox.style.display = 'none';
+            alertBox.style.transition = "opacity 2s ease";
+            alertBox.style.opacity = '0';
+        }
+    }, 5000);
+</script>
 {% endif %}

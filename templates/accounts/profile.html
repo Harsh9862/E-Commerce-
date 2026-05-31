@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="section-conten padding-y bg">
+
+{% include 'includes/alerts.html' %}
+
+<div class="container">
+    <div class="row">
+        <aside class="col-md-3">
+            <ul class="list-group">
+                <a class="list-group-item" href="{% url 'dashboard' %}"> Dashboard </a>
+                <a class="list-group-item active" href="#"> Profile </a>
+                <a class="list-group-item" href="{% url 'logout' %}"><i class="fa fa-power-off"></i><span class="text"></span> Logout </a>
+            </ul>
+        </aside>
+        <main class="col-md-9">
+            <article class="card">
+                <header class="card-header">
+                    <strong>My Profile</strong>
+                    <a class="btn btn-sm btn-primary float-right" href="{% url 'edit_profile' %}">Edit Profile</a>
+                </header>
+                <div class="card-body">
+                    {% if profile %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                {% if profile.profile_image %}
+                                    <img src="{{ profile.profile_image.url }}" class="img-fluid rounded-circle">
+                                {% else %}
+                                    {% if profile.gender == 'M' %}
+                                        <img src="{% static 'images/avatars/avatar4.png' %}" class="img-fluid rounded-circle" alt="Profile image">
+                                    {% elif profile.gender == 'F' %}
+                                        <img src="{% static 'images/avatars/avatar5.jpg' %}" class="img-fluid rounded-circle" alt="Profile image">
+                                    {% elif profile.gender == 'O' %}
+                                        <img src="{% static 'images/avatars/avatar6.png' %}" class="img-fluid rounded-circle" alt="Profile image">
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <h5>{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+                                <p><strong>Email:</strong> {{ request.user.email }}</p>
+                                <p><strong>Phone:</strong> {% if profile.phone_number %}{{ profile.phone_number }}{% else %}{{ request.user.phone_number }}{% endif %}</p>
+                                <p><strong>Company:</strong> {{ profile.company }}</p>
+                                <p><strong>Website:</strong> <a href="{{ profile.website }}">{{ profile.website }}</a></p>
+                                <p><strong>About:</strong> {{ profile.about }}</p>
+                                <p><strong>Address:</strong> {{ profile.full_address }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You don't have a profile yet. <a href="{% url 'edit_profile' %}">Create one now</a>.</p>
+                    {% endif %}
+                </div>
+            </article>
+        </main>
+    </div>
+</div>
+
+</section>
+{% endblock %}

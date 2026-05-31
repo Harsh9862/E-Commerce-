@@ -1,11 +1,16 @@
+import os
 from django.contrib import messages,auth
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render,redirect
+from django.db.models import Sum
 
-from accounts.models import Account
+from accounts.models import Account, Profile
 from carts.models import CartItem
+from orders.models import Order
 # use django forms for registration and login -> forms.py
 from .forms import RegistrationForm
+from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
 
 # Verification email
@@ -31,6 +36,11 @@ def register(request):
             user = Account.objects.create_user(first_name=first_name, last_name=last_name, email=email, username=username, password=password) #create_user func we created before in the models.py 
             user.phone_number = phone_number #we are not using phone number to create account therefore we are adding it latter
             user.save()
+            # create an empty profile for the user
+            try:
+                Profile.objects.create(user=user, phone_number=phone_number)
+            except Exception:
+                pass
 
             # USER ACTIVATION for account verification.
             current_site = get_current_site(request) #get the current site domain
@@ -110,9 +120,70 @@ def activate(request, uidb64, token):
         return redirect('register')
     
 
-@login_required(login_url='login')
+def get_avatar_urls():
+    avatars_dir = os.path.join(settings.BASE_DIR, 'static', 'images', 'avatars')
+    avatar_urls = []
+    if os.path.isdir(avatars_dir):
+        for filename in sorted(os.listdir(avatars_dir)):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+                avatar_urls.append(settings.STATIC_URL + 'images/avatars/' + filename)
+    return avatar_urls
+
+
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    orders = Order.objects.filter(user=request.user, is_ordered=True).order_by('-created_at')
+    total_spent = orders.aggregate(total_spent=Sum('order_total'))['total_spent'] or 0
+    profile = None
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = None
+
+    context = {
+        'orders': orders,
+        'order_count': orders.count(),
+        'total_spent': total_spent,
+        'profile': profile,
+    }
+    return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required(login_url='login')
+def profile_view(request):
+    profile = None
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = None
+
+    avatar_urls = get_avatar_urls()
+
+    return render(request, 'accounts/profile.html', {
+        'profile': profile,
+        'avatar_urls': avatar_urls,
+    })
+
+
+@login_required(login_url='login')
+def edit_profile(request):
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated.')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ProfileForm(instance=profile)
+
+    return render(request, 'accounts/profile_edit.html', {'form': form, 'profile': profile})
+
 
 def forgotpassword(request):
     if request.method == 'POST':

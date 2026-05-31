@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account
+from .models import Account, Profile
 from django.contrib.auth.admin import UserAdmin
 
 # Register your models here.
@@ -15,3 +15,11 @@ class AccountAdmin(UserAdmin):
     fieldsets = ()
 
 admin.site.register(Account,AccountAdmin)    # As we have created new way of login in admin panal so for that first we have to delete the old data i.e. old db and migration files
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'phone_number', 'company', 'country', 'created_at')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name')
+
+
+admin.site.register(Profile, ProfileAdmin)

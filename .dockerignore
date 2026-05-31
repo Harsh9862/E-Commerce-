@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.env-*
+env/
+__pycache__/
+*.py[cod]
+db.sqlite3
+sqlite_data.json
+staticfiles/
+media/
+.m2repo/

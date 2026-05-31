@@ -66,6 +66,41 @@ class Account(AbstractBaseUser):
     
     def has_module_perms(self, app_label):
         return True
+
+
+class Profile(models.Model):
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    )
+
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='profile')
+    profile_image = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    company = models.CharField(max_length=100, blank=True)
+    website = models.URLField(blank=True)
+    about = models.TextField(blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    dob = models.DateField(blank=True, null=True)
+
+    # Shipping / billing address
+    address_line_1 = models.CharField(max_length=255, blank=True)
+    address_line_2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    country = models.CharField(max_length=50, blank=True)
+    postcode = models.CharField(max_length=20, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile of {self.user.email}"
+
+    def full_address(self):
+        parts = [self.address_line_1, self.address_line_2, self.city, self.state, self.postcode, self.country]
+        return ', '.join([p for p in parts if p])
     
     
     

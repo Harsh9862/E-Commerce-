@@ -78,29 +78,78 @@
 			<div class="col-md-9">
 
 	<header class="section-heading">
-		<h3>Customer Reviews </h3>  
-		
+		<h3>Customer Reviews
+		{% if avg_rating %}
+			<span class="badge badge-secondary">{{ avg_rating|floatformat:1 }} / 5 ({{ review_count }} reviews)</span>
+		{% else %}
+			<span class="badge badge-secondary">No reviews yet</span>
+		{% endif %}
+		</h3>
 	</header>
 
-	<article class="box mb-3">
-		<div class="icontext w-100">
-			<img src="{% static './images/avatars/avatar1.jpg' %}" class="img-xs icon rounded-circle">
-			<div class="text">
-				<span class="date text-muted float-md-right">24.04.2020 </span>  
-				<h6 class="mb-1">Mike John </h6>
-				
+	{% if reviews %}
+		{% for review in reviews %}
+		<article class="box mb-3">
+			<div class="icontext w-100">
+				<!-- <img src="{% static './images/avatars/avatar1.jpg' %}" class="img-xs icon rounded-circle"> -->
+				<div class="text">
+					<span class="date text-muted float-md-right">{{ review.created_at|date:"M d, Y" }}</span>
+					<h6 class="mb-1">
+						{% if review.user.first_name or review.user.last_name %}
+							{{ review.user.first_name }} {{ review.user.last_name }}
+						{% else %}
+							{{ review.user.email }}
+						{% endif %}
+					</h6>
+					<div class="rating mb-2">
+						{% for i in "x"|rjust:"5" %}
+							{% if forloop.counter <= review.rating %}
+								<i class="fas fa-star" style="color: #ffc107;"></i>
+							{% else %}
+								<i class="far fa-star"></i>
+							{% endif %}
+						{% endfor %}
+					</div>
+				</div>
 			</div>
-		</div> <!-- icontext.// -->
-		<div class="mt-3">
-			<p>
-				Dummy comment Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip
-			</p>	
-		</div>
-	</article>
+			<div class="mt-3">
+				<p>{{ review.comment }}</p>
+			</div>
+		</article>
+		{% endfor %}
+	{% else %}
+		<p class="text-muted">No reviews yet. Be the first to review this product!</p>
+	{% endif %}
 
-	
+	{% if user.is_authenticated %}
+		<hr>
+		{% if can_review %}
+			<h5 class="mb-3">{% if user_review %}Edit Your Review{% else %}Leave a Review{% endif %}</h5>
+			<form method="post" action="{% url 'add_review' single_product.id %}">
+				{% csrf_token %}
+				<div class="form-group">
+					<label for="{{ form.rating.id_for_label }}">Rating</label>
+					{{ form.rating }}
+					{% if form.rating.errors %}
+						<div class="text-danger">{{ form.rating.errors }}</div>
+					{% endif %}
+				</div>
+				<div class="form-group">
+					<label for="{{ form.comment.id_for_label }}">Your Review</label>
+					{{ form.comment }}
+					{% if form.comment.errors %}
+						<div class="text-danger">{{ form.comment.errors }}</div>
+					{% endif %}
+				</div>
+				<button type="submit" class="btn btn-primary">Submit Review</button>
+			</form>
+		{% else %}
+			<p class="text-muted">Only customers who purchased this product can leave a review.</p>
+		{% endif %}
+	{% else %}
+		<hr>
+		<p><a href="{% url 'login' %}">Log in</a> to leave a review</p>
+	{% endif %}
 
 	</div> <!-- col.// -->
 </div> <!-- row.// -->

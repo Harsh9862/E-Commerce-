@@ -1,5 +1,6 @@
 from django import forms
 from .models import Account
+from .models import Profile
 
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -32,3 +33,21 @@ class RegistrationForm(forms.ModelForm):
             raise forms.ValidationError(
                 'Password does not match!'
             )
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['profile_image', 'phone_number', 'company', 'website', 'about', 'gender', 'dob',
+                  'address_line_1', 'address_line_2', 'city', 'state', 'country', 'postcode']
+        widgets = {
+            'dob': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'about': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'profile_image': forms.FileInput(attrs={'class': 'form-control-file'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(ProfileForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            if field not in ('profile_image', 'website'):
+                self.fields[field].widget.attrs.update({'class': 'form-control'})

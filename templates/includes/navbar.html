@@ -71,11 +71,24 @@
 						</div>
 					</div>
 					{% else %}
-					<div class="widget-header">
-						<small class="title text-muted">Welcome {{user.first_name}}!</small>
-						<div> 
-							<a href="{% url 'dashboard' %}">Dashboard</a> <span class="dark-transp"> | </span>
-							<a href="{% url 'logout' %}"> Log Out</a>
+					<div class="d-flex align-items-center">
+						{% if profile.profile_image %}
+                                    <img src="{{ profile.profile_image.url }}" class="img-xs rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt="Profile image">
+                                {% else %}
+                                    {% if profile.gender == 'M' %}
+                                        <img src="{% static 'images/avatars/avatar4.png' %}" class="img-xs rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt="Profile image">
+                                    {% elif profile.gender == 'F' %}
+                                        <img src="{% static 'images/avatars/avatar5.jpg' %}" class="img-xs rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt="Profile image">
+                                    {% elif profile.gender == 'O' %}
+                                        <img src="{% static 'images/avatars/avatar6.png' %}" class="img-xs rounded-circle mr-2" style="width:36px;height:36px;object-fit:cover;" alt="Profile image">
+                                    {% endif %}
+                                {% endif %}
+						<div class="widget-header">
+							<small class="title text-muted">Welcome {{user.first_name}}!</small>
+							<div> 
+								<a href="{% url 'dashboard' %}">Dashboard</a> <span class="dark-transp"> | </span>
+								<a href="{% url 'logout' %}"> Log Out</a>
+							</div>
 						</div>
 					</div>
 					{% endif %}

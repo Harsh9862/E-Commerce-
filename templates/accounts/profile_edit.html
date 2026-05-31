@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section-conten padding-y bg">
+
+{% include 'includes/alerts.html' %}
+
+<div class="container">
+    <div class="row">
+        <aside class="col-md-3">
+            <ul class="list-group">
+                <a class="list-group-item" href="{% url 'dashboard' %}"> Dashboard </a>
+                <a class="list-group-item active" href="{% url 'profile' %}"> Profile </a>
+                <a class="list-group-item" href="{% url 'logout' %}"><i class="fa fa-power-off"></i><span class="text"></span> Logout </a>
+            </ul>
+        </aside>
+        <main class="col-md-9">
+            <article class="card">
+                <header class="card-header">
+                    <strong>Edit Profile</strong>
+                </header>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data"> <!--enctype when we upload some images -->
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{% url 'profile' %}" class="btn btn-light">Cancel</a>
+                    </form>
+                </div>
+            </article>
+        </main>
+    </div>
+</div>
+
+</section>
+{% endblock %}
