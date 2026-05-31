@@ -3,6 +3,7 @@ services:
     build: .
     command: >
       sh -c "python manage.py migrate &&
+             python manage.py create_default_superuser &&
              python manage.py collectstatic --noinput &&
              gunicorn greatkart.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 120"
     env_file:
